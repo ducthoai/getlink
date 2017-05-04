@@ -55,7 +55,7 @@ public class Download extends HttpServlet {
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         //response.setContentType("text/html;charset=UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
+        response.setContentType("application/json");
         try (PrintWriter out = response.getWriter()) {
             String link = request.getParameter("link");
             String password = request.getParameter("password");
@@ -77,6 +77,8 @@ public class Download extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.write("{\"msg\": \"You must complete capcha\"}");
                 return;
+            } else {
+                System.out.println("Capcha data: "+ capcha);
             }
             valid = VerifyUtils.verify(capcha);
             if (!valid) {
@@ -86,18 +88,20 @@ public class Download extends HttpServlet {
                 log(msg);
                 return;
             }
+            
             boolean isValidLink = VerifyUtils.verifyLink(link);
             if(!isValidLink){
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.write("{\"msg\": \"link not support\",\"field\":\"url\"}");
                 msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
+                
                 return;
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                
                 String data = userAgent + request.getRemoteHost() + String.valueOf(new Date());
                 tmpURI = DigestUtils.md5Hex(data);
-                out.write("{\"msg\": \"Request successfully\",\"url\":\"http://localhost:8084/GetLinkFshare/Download"
+                out.write("{\"msg\": \"Request successfully\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
                         +tmpURI
                         +"\""
                         + "}");
