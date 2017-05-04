@@ -73,6 +73,7 @@ public class Download extends HttpServlet {
             if(userAgent == null || userAgent.isEmpty()){
                 userAgent = "Robot";
             }
+            
             if (link == null || link.isEmpty()) {
                 msg = "emty link request by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
@@ -86,8 +87,10 @@ public class Download extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.write("{\"msg\": \"You must complete capcha\"}");
                 return;
-            } else {
-                System.out.println("Capcha data: "+ capcha);
+            }
+            if(password == null || password.isEmpty()){
+                password = "";
+                
             }
             valid = VerifyUtils.verify(capcha);
             if (!valid) {
@@ -116,8 +119,7 @@ public class Download extends HttpServlet {
                         +tmpURI
                         +"\""
                         + "}");
-                URLData urld = new URLData(link, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
-                //URLData urld = new URLData();
+                URLData urld = new URLData(link,password, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
                 persist(urld);
                 return;
             }

@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "URLData.findAll", query = "SELECT u FROM URLData u")
     , @NamedQuery(name = "URLData.findById", query = "SELECT u FROM URLData u WHERE u.id = :id")
     , @NamedQuery(name = "URLData.findByOriginRequestURL", query = "SELECT u FROM URLData u WHERE u.originRequestURL = :originRequestURL")
+    , @NamedQuery(name = "URLData.findByPassword", query = "SELECT u FROM URLData u WHERE u.password = :password")
     , @NamedQuery(name = "URLData.findByOriginProcessURI", query = "SELECT u FROM URLData u WHERE u.originProcessURI = :originProcessURI")
     , @NamedQuery(name = "URLData.findByOriginResultURL", query = "SELECT u FROM URLData u WHERE u.originResultURL = :originResultURL")
     , @NamedQuery(name = "URLData.findByIdentity", query = "SELECT u FROM URLData u WHERE u.identity = :identity")
@@ -52,6 +53,9 @@ public class URLData implements Serializable {
     @Basic(optional = false)
     @Column(name = "originRequestURL", nullable = false, length = 255)
     private String originRequestURL;
+    @Basic(optional = false)
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
     @Basic(optional = false)
     @Column(name = "originProcessURI", nullable = false, length = 255)
     private String originProcessURI;
@@ -91,9 +95,10 @@ public class URLData implements Serializable {
         this.id = id;
     }
 
-    public URLData(Integer id, String originRequestURL, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
+    public URLData(Integer id, String originRequestURL, String password, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
         this.id = id;
         this.originRequestURL = originRequestURL;
+        this.password = password;
         this.originProcessURI = originProcessURI;
         this.originResultURL = originResultURL;
         this.identity = identity;
@@ -106,9 +111,10 @@ public class URLData implements Serializable {
         this.finalURL = finalURL;
     }
     
-    public URLData(String originRequestURL, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
+    public URLData( String originRequestURL, String password, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
         
         this.originRequestURL = originRequestURL;
+        this.password = password;
         this.originProcessURI = originProcessURI;
         this.originResultURL = originResultURL;
         this.identity = identity;
@@ -120,6 +126,7 @@ public class URLData implements Serializable {
         this.receiveTime = receiveTime;
         this.finalURL = finalURL;
     }
+
 
     public Integer getId() {
         return id;
@@ -135,6 +142,14 @@ public class URLData implements Serializable {
 
     public void setOriginRequestURL(String originRequestURL) {
         this.originRequestURL = originRequestURL;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getOriginProcessURI() {
