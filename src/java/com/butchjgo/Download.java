@@ -9,6 +9,7 @@ import com.entity.URLData;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
@@ -49,8 +50,29 @@ public class Download extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/json");
         try (PrintWriter out = response.getWriter()) {
+            String userAgent = request.getHeader("User-Agent");
+            if (userAgent == null || userAgent.isEmpty()) {
+                userAgent = "Robot";
+            }
+            String requestURI = request.getPathInfo().substring(1);
+            URLData urld = null;
+
+            try {
+                urld = (URLData) em.createNamedQuery("URLData.findByOriginProcessURI", URLData.class)
+                        .setParameter("originProcessURI", requestURI)
+                        .getSingleResult();
+            } catch (Exception e) {
+                msg = "Request uri not found by: " + userAgent + " from " + request.getRemoteHost();
+                log(msg);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                out.write("{\"msg\": \"no content found\"}");
+                return;
+            }
+
             response.setStatus(HttpServletResponse.SC_OK);
-            out.write("{\"msg\": \"you are good man\"}");
+            out.write("{\"msg\": \""
+                    + urld.getOriginRequestURL()
+                    + "\"}");
         }
     }
 

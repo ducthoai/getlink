@@ -254,7 +254,7 @@ public class URLData implements Serializable {
 
     @Override
     public String toString() {
-        return "com.entity.URLData[ id=" + id + " ]";
+        return String.valueOf(this.originProcessURI.length());
     }
     
 }
