@@ -80,8 +80,10 @@ public class Download extends HttpServlet {
                 log(msg);
                 return;
             }
-            boolean ve = VerifyUtils.verifyLink(link);
-            System.out.println("");
+            boolean isValidLink = VerifyUtils.verifyLink(link);
+            if(!isValidLink){
+                
+            }
         }
     }
 

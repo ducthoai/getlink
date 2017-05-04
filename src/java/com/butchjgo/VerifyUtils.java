@@ -82,7 +82,6 @@ public class VerifyUtils{
         
         for (String stringParttern : listPattern) {
             if (link.matches(stringParttern)) {
-                System.out.println("1 link math: "+link);
                 return true;
             }
         }
