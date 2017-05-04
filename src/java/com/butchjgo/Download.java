@@ -82,7 +82,11 @@ public class Download extends HttpServlet {
             }
             boolean isValidLink = VerifyUtils.verifyLink(link);
             if(!isValidLink){
-                
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"ms\": \"Your link currently not supported\"}");
+                msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
+                log(msg);
+                return;
             }
         }
     }
