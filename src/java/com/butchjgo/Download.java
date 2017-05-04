@@ -79,7 +79,7 @@ public class Download extends HttpServlet {
                 return;
             }
             boolean ve = VerifyUtils.verifyLink(link);
-            
+            System.out.println("");
         }
     }
 
