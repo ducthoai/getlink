@@ -58,6 +58,10 @@ public class Download extends HttpServlet {
             String password = request.getParameter("password");
             String capcha = request.getParameter("g-recaptcha-response");
             String userAgent = request.getHeader("User-Agent");
+            if(userAgent == null || userAgent.isEmpty()){
+                userAgent = "Robot";
+                
+            }
             if (link == null || link.isEmpty()) {
                 msg = "emty link request by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
