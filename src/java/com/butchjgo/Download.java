@@ -70,10 +70,10 @@ public class Download extends HttpServlet {
             String password = request.getParameter("password");
             String capcha = request.getParameter("g-recaptcha-response");
             String userAgent = request.getHeader("User-Agent");
-            if(userAgent == null || userAgent.isEmpty()){
+            if (userAgent == null || userAgent.isEmpty()) {
                 userAgent = "Robot";
             }
-            
+
             if (link == null || link.isEmpty()) {
                 msg = "emty link request by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
@@ -88,9 +88,9 @@ public class Download extends HttpServlet {
                 out.write("{\"msg\": \"You must complete capcha\"}");
                 return;
             }
-            if(password == null || password.isEmpty()){
+            if (password == null || password.isEmpty()) {
                 password = "";
-                
+
             }
             valid = VerifyUtils.verify(capcha);
             if (!valid) {
@@ -100,29 +100,40 @@ public class Download extends HttpServlet {
                 log(msg);
                 return;
             }
-            
+
             boolean isValidLink = VerifyUtils.verifyLink(link);
-            if(!isValidLink){
+            if (!isValidLink) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.write("{\"msg\": \"link not support\",\"field\":\"url\"}");
                 msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
-                
-                return;
-            } else {
-                
-                String data = userAgent + request.getRemoteHost() + String.valueOf(new Date());
-                String data2 = userAgent + request.getRemoteHost();
-                tmpURI = DigestUtils.md5Hex(data);
-                identity = DigestUtils.md5Hex(data2);
-                out.write("{\"msg\": \"Request successfully\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
-                        +tmpURI
-                        +"\""
-                        + "}");
-                URLData urld = new URLData(link,password, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
-                persist(urld);
+
                 return;
             }
+
+            String data = userAgent + request.getRemoteHost() + String.valueOf(new Date());
+            String data2 = userAgent + request.getRemoteHost();
+            tmpURI = DigestUtils.md5Hex(data);
+            identity = DigestUtils.md5Hex(data2);
+
+            URLData urld = new URLData(link, password, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
+
+            if (persist(urld)) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.write("{\"msg\": \"Request successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
+                        + tmpURI
+                        + "\""
+                        + "}");
+            } else {
+                msg = "request not successfull at final step" + userAgent + " from " + request.getRemoteHost();
+                log(msg);
+                response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
+                out.write("{\"msg\": \"Request not successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
+                        + tmpURI
+                        + "\""
+                        + "}");
+            }
+            return;
         }
     }
 
@@ -165,17 +176,19 @@ public class Download extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    public void persist(Object object) {
-        EntityManager em = emf.createEntityManager();
+    public boolean persist(Object object) {
+        boolean isSuccess = false;
         try {
             em.getTransaction().begin();
             em.persist(object);
             em.getTransaction().commit();
+            isSuccess = true;
         } catch (Exception e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "exception caught", e);
             em.getTransaction().rollback();
         } finally {
             em.close();
+            return isSuccess;
         }
     }
 
