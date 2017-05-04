@@ -25,7 +25,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  *
  * @author root
  */
-@WebServlet(name = "Download", urlPatterns = {"/Download"})
+@WebServlet(name = "Download", urlPatterns = {"/Download/*"})
 public class Download extends HttpServlet {
 
     private String msg;
@@ -34,6 +34,7 @@ public class Download extends HttpServlet {
     EntityManager em = emf.createEntityManager();
     private String identity;
     private String tmpURI;
+    private String pathGetPattern = "/(\\w+)";
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -46,24 +47,15 @@ public class Download extends HttpServlet {
      */
     protected void processGetRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Download</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Download at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+            response.setStatus(HttpServletResponse.SC_OK);
+            out.write("{\"msg\": \"you are good man\"}");
         }
     }
 
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //response.setContentType("text/html;charset=UTF-8");
         response.setContentType("application/json");
         try (PrintWriter out = response.getWriter()) {
             String link = request.getParameter("link");
@@ -107,7 +99,6 @@ public class Download extends HttpServlet {
                 out.write("{\"msg\": \"link not support\",\"field\":\"url\"}");
                 msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
-
                 return;
             }
 
@@ -137,6 +128,15 @@ public class Download extends HttpServlet {
         }
     }
 
+    protected void processInvalidRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        try (PrintWriter out = response.getWriter()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write("{\"msg\": \"The request could not be understood by the server\"}");
+        }
+    }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -149,7 +149,13 @@ public class Download extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processGetRequest(request, response);
+        String path = request.getPathInfo();
+        if (path == null || !path.matches(pathGetPattern)) {
+            processInvalidRequest(request, response);
+        } else {
+
+            processGetRequest(request, response);
+        }
     }
 
     /**
@@ -163,7 +169,12 @@ public class Download extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processPostRequest(request, response);
+        if (request.getPathInfo() != null) {
+            processInvalidRequest(request, response);
+        } else {
+
+            processPostRequest(request, response);
+        }
     }
 
     /**
