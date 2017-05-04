@@ -7,11 +7,13 @@ package com.butchjgo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  *
@@ -22,6 +24,7 @@ public class Download extends HttpServlet {
 
     private String msg;
     private boolean valid;
+    private String tmpURI;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -60,36 +63,44 @@ public class Download extends HttpServlet {
             String userAgent = request.getHeader("User-Agent");
             if(userAgent == null || userAgent.isEmpty()){
                 userAgent = "Robot";
-                
             }
             if (link == null || link.isEmpty()) {
                 msg = "emty link request by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"ms\": \"You must provide a link\"}");
+                out.write("{\"msg\": \"You must provide a link\",\"field\":\"url\"}");
                 return;
             }
             if (capcha == null || capcha.isEmpty()) {
                 msg = "emty capcha submit by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"ms\": \"You must complete capcha\"}");
+                out.write("{\"msg\": \"You must complete capcha\"}");
                 return;
             }
             valid = VerifyUtils.verify(capcha);
             if (!valid) {
                 msg = "invalid capcha by: " + userAgent + " from " + request.getRemoteHost();
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"ms\": \"Please finish your capcha\"}");
+                out.write("{\"msg\": \"Please finish your capcha\"}");
                 log(msg);
                 return;
             }
             boolean isValidLink = VerifyUtils.verifyLink(link);
             if(!isValidLink){
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"ms\": \"Your link currently not supported\"}");
+                out.write("{\"msg\": \"link not support\",\"field\":\"url\"}");
                 msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
+                return;
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                String data = userAgent + request.getRemoteHost() + String.valueOf(new Date());
+                tmpURI = DigestUtils.md5Hex(data);
+                out.write("{\"msg\": \"Request successfully\",\"url\":\"http://localhost:8084/GetLinkFshare/Download"
+                        +tmpURI
+                        +"\""
+                        + "}");
                 return;
             }
         }
