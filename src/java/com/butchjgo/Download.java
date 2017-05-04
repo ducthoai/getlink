@@ -69,12 +69,14 @@ public class Download extends HttpServlet {
                 msg = "emty capcha submit by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"ms\": \"You must complete capcha\"}");
                 return;
             }
             valid = VerifyUtils.verify(capcha);
             if (!valid) {
                 msg = "invalid capcha by: " + userAgent + " from " + request.getRemoteHost();
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"ms\": \"Please finish your capcha\"}");
                 log(msg);
                 return;
             }
