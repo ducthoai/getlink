@@ -5,9 +5,15 @@
  */
 package com.butchjgo;
 
+import com.entity.URLData;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +30,9 @@ public class Download extends HttpServlet {
 
     private String msg;
     private boolean valid;
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory("GetLinkFsharePU");
+    EntityManager em = emf.createEntityManager();
+    private String identity;
     private String tmpURI;
 
     /**
@@ -100,11 +109,16 @@ public class Download extends HttpServlet {
             } else {
                 
                 String data = userAgent + request.getRemoteHost() + String.valueOf(new Date());
+                String data2 = userAgent + request.getRemoteHost();
                 tmpURI = DigestUtils.md5Hex(data);
+                identity = DigestUtils.md5Hex(data2);
                 out.write("{\"msg\": \"Request successfully\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
                         +tmpURI
                         +"\""
                         + "}");
+                URLData urld = new URLData(link, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
+                //URLData urld = new URLData();
+                persist(urld);
                 return;
             }
         }
@@ -148,5 +162,19 @@ public class Download extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    public void persist(Object object) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(object);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "exception caught", e);
+            em.getTransaction().rollback();
+        } finally {
+            em.close();
+        }
+    }
 
 }
