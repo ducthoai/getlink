@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author root
  */
 @Entity
-@Table(name = "tblurldata", catalog = "getlink", schema = "")
+@Table(name = "urldata", catalog = "getlink", schema = "")
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "URLData.findAll", query = "SELECT u FROM URLData u")
@@ -50,53 +50,36 @@ public class URLData implements Serializable {
     @Basic(optional = false)
     @Column(name = "id", nullable = false)
     private Integer id;
-    @Basic(optional = false)
-    @Column(name = "originRequestURL", nullable = false, length = 255)
+    @Column(name = "originRequestURL", length = 255)
     private String originRequestURL;
-    @Basic(optional = false)
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(name = "password", length = 255)
     private String password;
-    @Basic(optional = false)
-    @Column(name = "originProcessURI", nullable = false, length = 255)
+    @Column(name = "originProcessURI", length = 255)
     private String originProcessURI;
-    @Basic(optional = false)
-    @Column(name = "originResultURL", nullable = false, length = 255)
+    @Column(name = "originResultURL", length = 255)
     private String originResultURL;
-    @Basic(optional = false)
-    @Column(name = "identity", nullable = false, length = 255)
+    @Column(name = "identity", length = 255)
     private String identity;
-    @Basic(optional = false)
-    @Column(name = "status", nullable = false)
-    private int status;
-    @Basic(optional = false)
-    @Column(name = "retry", nullable = false)
-    private int retry;
-    @Basic(optional = false)
-    @Column(name = "isProcessed", nullable = false)
-    private boolean isProcessed;
-    @Basic(optional = false)
-    @Column(name = "isLeech", nullable = false)
-    private boolean isLeech;
-    @Basic(optional = false)
-    @Column(name = "isServe", nullable = false)
-    private boolean isServe;
-    @Basic(optional = false)
-    @Column(name = "receiveTime", nullable = false)
+    @Column(name = "status")
+    private Integer status;
+    @Column(name = "retry")
+    private Integer retry;
+    @Column(name = "isProcessed")
+    private Boolean isProcessed;
+    @Column(name = "isLeech")
+    private Boolean isLeech;
+    @Column(name = "isServe")
+    private Boolean isServe;
+    @Column(name = "receiveTime")
     @Temporal(TemporalType.TIMESTAMP)
     private Date receiveTime;
-    @Basic(optional = false)
-    @Column(name = "finalURL", nullable = false, length = 255)
+    @Column(name = "finalURL", length = 255)
     private String finalURL;
 
     public URLData() {
     }
 
-    public URLData(Integer id) {
-        this.id = id;
-    }
-
-    public URLData(Integer id, String originRequestURL, String password, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
-        this.id = id;
+    public URLData(String originRequestURL, String password, String originProcessURI, String originResultURL, String identity, Integer status, Integer retry, Boolean isProcessed, Boolean isLeech, Boolean isServe, Date receiveTime, String finalURL) {
         this.originRequestURL = originRequestURL;
         this.password = password;
         this.originProcessURI = originProcessURI;
@@ -111,22 +94,9 @@ public class URLData implements Serializable {
         this.finalURL = finalURL;
     }
     
-    public URLData( String originRequestURL, String password, String originProcessURI, String originResultURL, String identity, int status, int retry, boolean isProcessed, boolean isLeech, boolean isServe, Date receiveTime, String finalURL) {
-        
-        this.originRequestURL = originRequestURL;
-        this.password = password;
-        this.originProcessURI = originProcessURI;
-        this.originResultURL = originResultURL;
-        this.identity = identity;
-        this.status = status;
-        this.retry = retry;
-        this.isProcessed = isProcessed;
-        this.isLeech = isLeech;
-        this.isServe = isServe;
-        this.receiveTime = receiveTime;
-        this.finalURL = finalURL;
+    public URLData(Integer id) {
+        this.id = id;
     }
-
 
     public Integer getId() {
         return id;
@@ -176,43 +146,43 @@ public class URLData implements Serializable {
         this.identity = identity;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
-    public int getRetry() {
+    public Integer getRetry() {
         return retry;
     }
 
-    public void setRetry(int retry) {
+    public void setRetry(Integer retry) {
         this.retry = retry;
     }
 
-    public boolean getIsProcessed() {
+    public Boolean getIsProcessed() {
         return isProcessed;
     }
 
-    public void setIsProcessed(boolean isProcessed) {
+    public void setIsProcessed(Boolean isProcessed) {
         this.isProcessed = isProcessed;
     }
 
-    public boolean getIsLeech() {
+    public Boolean getIsLeech() {
         return isLeech;
     }
 
-    public void setIsLeech(boolean isLeech) {
+    public void setIsLeech(Boolean isLeech) {
         this.isLeech = isLeech;
     }
 
-    public boolean getIsServe() {
+    public Boolean getIsServe() {
         return isServe;
     }
 
-    public void setIsServe(boolean isServe) {
+    public void setIsServe(Boolean isServe) {
         this.isServe = isServe;
     }
 
@@ -254,7 +224,7 @@ public class URLData implements Serializable {
 
     @Override
     public String toString() {
-        return String.valueOf(this.originProcessURI.length());
+        return "com.entity.URLData[ id=" + id + " ]";
     }
     
 }

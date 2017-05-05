@@ -48,7 +48,7 @@ public class Download extends HttpServlet {
      */
     protected void processGetRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
+        response.setContentType("application/json;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             String userAgent = request.getHeader("User-Agent");
             if (userAgent == null || userAgent.isEmpty()) {
@@ -78,7 +78,8 @@ public class Download extends HttpServlet {
 
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
+        response.setContentType("application/json;charset=UTF-8");
+        response.setHeader("Access-Control-Allow-Origin", "*");
         try (PrintWriter out = response.getWriter()) {
             String link = request.getParameter("link");
             String password = request.getParameter("password");
@@ -152,7 +153,7 @@ public class Download extends HttpServlet {
 
     protected void processInvalidRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
+        response.setContentType("application/json;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.write("{\"msg\": \"The request could not be understood by the server\"}");
