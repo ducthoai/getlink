@@ -221,7 +221,6 @@ public class Download extends HttpServlet {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "exception caught", e);
             em.getTransaction().rollback();
         } finally {
-            em.close();
             return isSuccess;
         }
     }
