@@ -5,6 +5,7 @@
  */
 package com.butchjgo;
 
+import NetTool.*;
 import com.entity.URLData;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -70,10 +71,21 @@ public class Download extends HttpServlet {
             }
 
             response.setStatus(HttpServletResponse.SC_OK);
-            if((new Date()).getTime() - urld.getReceiveTime().getTime() > MyConstants.TIME_WAIT*1000){
-                out.write("{\"msg\": \"link receive\"}");
+            if ((new Date()).getTime() - urld.getReceiveTime().getTime() > MyConstants.TIME_WAIT * 1000) {
+                try {
+                    em.refresh(urld);
+                    urld =  em.find(URLData.class, urld.getId());
+                } catch (Exception x) {
+
+                }
+                out.write("{\"msg\": \"link receive\","
+                        + "\"url\": "
+                        + "\""
+                        + urld.getOriginResultURL()
+                        + "\""
+                        + "}");
             } else {
-                long waited = ((new Date()).getTime() - urld.getReceiveTime().getTime())/1000;
+                long waited = ((new Date()).getTime() - urld.getReceiveTime().getTime()) / 1000;
                 out.write("{"
                         + "\"msg\": "
                         + "\"please wait a seconds\","
@@ -83,7 +95,7 @@ public class Download extends HttpServlet {
                         + "\""
                         + "}");
             }
-            
+
         }
     }
 
@@ -143,11 +155,24 @@ public class Download extends HttpServlet {
 
             URLData urld = new URLData(link, password, tmpURI, "", identity, 0, 0, false, false, false, new Date(), "");
 
+            FshareLinkInfo info = NetTool.getFshareLinkInfo(urld.getOriginRequestURL());
+            if (info.getCode() == 404) {
+                out.write("{\"msg\": \"This url is not valid\","
+                        + "\","
+                        + "\"error\": "
+                        + "\"" + "file not found" + "\""
+                        + "}");
+                return;
+            }
             if (persist(urld)) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.write("{\"msg\": \"Request successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download/"
                         + tmpURI
-                        + "\""
+                        + "\","
+                        + "\"name\": "
+                        + "\"" + info.getName() + "\","
+                        + "\"size\": "
+                        + "\"" + info.getSize() + "\""
                         + "}");
             } else {
                 msg = "request not successfull at final step" + userAgent + " from " + request.getRemoteHost();
@@ -223,6 +248,7 @@ public class Download extends HttpServlet {
 
     public boolean persist(Object object) {
         boolean isSuccess = false;
+        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
             em.persist(object);
@@ -232,7 +258,9 @@ public class Download extends HttpServlet {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "exception caught", e);
             em.getTransaction().rollback();
         } finally {
+            em.close();
             return isSuccess;
+
         }
     }
 
