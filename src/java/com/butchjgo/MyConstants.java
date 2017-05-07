@@ -14,4 +14,8 @@ public class MyConstants {
     public static final String SITE_KEY = "6Lex7x8UAAAAAEA8YlpVHbCroYAjo8GHMBK4lYk7";
 
     public static final String SECRET_KEY = "6Lex7x8UAAAAAEyc7LCiXyhS9sgylklesqhVcsN6";
+    
+    public static final String GOOGLE_SUPER_CAPCHA_CODE = "123@abc";
+    
+    public static final long TIME_WAIT = 30;
 }

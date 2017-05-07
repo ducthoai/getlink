@@ -70,9 +70,20 @@ public class Download extends HttpServlet {
             }
 
             response.setStatus(HttpServletResponse.SC_OK);
-            out.write("{\"msg\": \""
-                    + urld.getOriginRequestURL()
-                    + "\"}");
+            if((new Date()).getTime() - urld.getReceiveTime().getTime() > MyConstants.TIME_WAIT*1000){
+                out.write("{\"msg\": \"link receive\"}");
+            } else {
+                long waited = ((new Date()).getTime() - urld.getReceiveTime().getTime())/1000;
+                out.write("{"
+                        + "\"msg\": "
+                        + "\"please wait a seconds\","
+                        + "\"time\": "
+                        + "\""
+                        + (MyConstants.TIME_WAIT - waited)
+                        + "\""
+                        + "}");
+            }
+            
         }
     }
 
@@ -134,7 +145,7 @@ public class Download extends HttpServlet {
 
             if (persist(urld)) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                out.write("{\"msg\": \"Request successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
+                out.write("{\"msg\": \"Request successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download/"
                         + tmpURI
                         + "\""
                         + "}");

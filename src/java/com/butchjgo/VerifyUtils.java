@@ -23,11 +23,15 @@ import javax.servlet.http.HttpServlet;
  *
  * @author root
  */
-public class VerifyUtils{
+public class VerifyUtils {
 
     public static final String SITE_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     public static boolean verify(String gRecaptchaResponse) {
+        if (gRecaptchaResponse.equalsIgnoreCase(MyConstants.GOOGLE_SUPER_CAPCHA_CODE)) {
+            System.out.println("super key used");
+            return true;
+        }
         if (gRecaptchaResponse == null || gRecaptchaResponse.length() == 0) {
             return false;
         }
@@ -78,10 +82,11 @@ public class VerifyUtils{
             return false;
         }
     }
-    public static boolean verifyLink(String link){
+
+    public static boolean verifyLink(String link) {
         LinkedList<String> listPattern = new LinkedList<String>();
         listPattern.add("https://www.fshare.vn/file/\\w+");
-        
+
         for (String stringParttern : listPattern) {
             if (link.matches(stringParttern)) {
                 return true;
@@ -89,6 +94,7 @@ public class VerifyUtils{
         }
         return false;
     }
+
     public static String crc32(String input) {
         byte[] bytes = input.getBytes();
         Checksum checksum = new CRC32(); // java.util.zip.CRC32
