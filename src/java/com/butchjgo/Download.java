@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -37,6 +38,7 @@ public class Download extends HttpServlet {
     private String identity;
     private String tmpURI;
     private String pathGetPattern = "/(\\w+)";
+    private JSONObject jsono;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -74,7 +76,7 @@ public class Download extends HttpServlet {
             if ((new Date()).getTime() - urld.getReceiveTime().getTime() > MyConstants.TIME_WAIT * 1000) {
                 try {
                     em.refresh(urld);
-                    urld =  em.find(URLData.class, urld.getId());
+                    urld = em.find(URLData.class, urld.getId());
                 } catch (Exception x) {
 
                 }
@@ -104,6 +106,7 @@ public class Download extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         try (PrintWriter out = response.getWriter()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             String link = request.getParameter("link");
             String password = request.getParameter("password");
             String capcha = request.getParameter("g-recaptcha-response");
@@ -115,34 +118,36 @@ public class Download extends HttpServlet {
             if (link == null || link.isEmpty()) {
                 msg = "emty link request by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"msg\": \"You must provide a link\",\"field\":\"url\"}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_MISSING_LINK);
+                out.write(jsono.toString());
                 return;
             }
             if (capcha == null || capcha.isEmpty()) {
                 msg = "emty capcha submit by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"msg\": \"You must complete capcha\"}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_MISSING_CAPCHA);
+                out.write(jsono.toString());
                 return;
             }
             if (password == null || password.isEmpty()) {
                 password = "";
-
             }
-            valid = VerifyUtils.verify(capcha);
-            if (!valid) {
+
+            if (!VerifyUtils.verify(capcha)) {
                 msg = "invalid capcha by: " + userAgent + " from " + request.getRemoteHost();
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"msg\": \"Please finish your capcha\"}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_INVALID_CAPCHA);
+                out.write(jsono.toString());
                 log(msg);
                 return;
             }
 
-            boolean isValidLink = VerifyUtils.verifyLink(link);
-            if (!isValidLink) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write("{\"msg\": \"link not support\",\"field\":\"url\"}");
+            if (!VerifyUtils.verifyLink(link)) {
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_LINK_NOT_SUPPORTED);
+                out.write(jsono.toString());
                 msg = "request not support by: " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
                 return;
@@ -157,33 +162,36 @@ public class Download extends HttpServlet {
 
             FshareLinkInfo info = NetTool.getFshareLinkInfo(urld.getOriginRequestURL());
             if (info.getCode() == 404) {
-                out.write("{\"msg\": \"This url is not valid\","
-                        + "\","
-                        + "\"error\": "
-                        + "\"" + "file not found" + "\""
-                        + "}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_INVALID_URL);
+                jsono.put("error", MyConstants.MSG_INVALID_URL_ERRMSG);
+                out.write(jsono.toString());
                 return;
             }
             if (persist(urld)) {
+                String scheme = request.getScheme();             // http
+                String serverName = request.getServerName();     // hostname.com
+                int serverPort = request.getServerPort();        // 80
+                String contextPath = request.getContextPath();   // /mywebapp
+                String servletPath = request.getServletPath();
+                String urlFull = scheme + "://" + serverName + ":" + serverPort + contextPath + servletPath;
+                
                 response.setStatus(HttpServletResponse.SC_OK);
-                out.write("{\"msg\": \"Request successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download/"
-                        + tmpURI
-                        + "\","
-                        + "\"name\": "
-                        + "\"" + info.getName() + "\","
-                        + "\"size\": "
-                        + "\"" + info.getSize() + "\""
-                        + "}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_REQUEST_SUCCESS);
+                jsono.put("url", urlFull+"/" + tmpURI);
+                jsono.put("name", info.getName());
+                jsono.put("size", info.getSize());
+
+                out.write(jsono.toString());
             } else {
-                msg = "request not successfull at final step" + userAgent + " from " + request.getRemoteHost();
+                msg = "request not successfull at final step " + userAgent + " from " + request.getRemoteHost();
                 log(msg);
                 response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
-                out.write("{\"msg\": \"Request not successfull\",\"url\":\"http://localhost:8084/GetLinkFshare/Download?process="
-                        + tmpURI
-                        + "\""
-                        + "}");
+                jsono = new JSONObject();
+                jsono.put("msg", MyConstants.MSG_REQUEST_UNSUCCESS);
+                out.write(jsono.toString());
             }
-            return;
         }
     }
 
@@ -208,6 +216,7 @@ public class Download extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String path = request.getPathInfo();
         if (path == null || !path.matches(pathGetPattern)) {
             processInvalidRequest(request, response);
