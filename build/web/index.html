@@ -1,16 +1,147 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
+
+<head>
+
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <title>Home page</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+    <!-- Progress Bar -->
+    <script src="resouces/js/jquery.progresstimer.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-8">
+                <form id="form-get-link" class="form-inline" action="http://10.0.129.250:8084/GetLinkFshare/Download" method="POST">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon"><span class="glyphicon glyphicon-link"></span></div>
+                            <input name="link" type="text" class="form-control" id="link" placeholder="link">
+                            <div class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></div>
+                            <input name="password" type="text" class="form-control" id="password" placeholder="password">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">OK</button>
+                    </div>
+                    <div class="form-group">
+                        <div class="g-recaptcha" data-sitekey="6Lex7x8UAAAAAEA8YlpVHbCroYAjo8GHMBK4lYk7"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-xs-6 col-md-4">Right side</div>
+        </div>
+
+        <div class="row col-xs-8" id="section-download-no1">
+            <!-- Progress bar -->
+            <div class="loading-progress">
+
+            </div>
+            <div class="input-group">
+                <div class="input-group-addon">
+                    <span class="glyphicon glyphicon-link"></span>
+                </div>
+                <input type="text" class="form-control" aria-label="" placeholder="https://..." id="txt-download-link" readonly/>
+                <input type="hidden" id="file-info"/>
+                <div class="input-group-btn">
+                    <button type="button" class="btn" disabled id="file-size-no1">0 MB</button>
+                    <button type="button" class="btn btn-primary" disabled id="btn-copy-link"><span class="glyphicon glyphicon-copy"></span> Copy</button>
+                    <button type="button" class="btn btn-success" disabled id="btn-download-link"><i class="fa fa-cloud-download" aria-hidden="true" ></i> Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row col-xs-8">
+            <div class="alert alert-info" role="alert" id="response-alert">
+                <b>Heads up!</b> Please complete the form to download.
+            </div>
+        </div>
+    </div>
+
+    <script type='text/javascript'>
+        var frm = $('#form-get-link');
+        frm.submit(function (event) {
+            event.preventDefault();
+            $.ajax({
+                type: frm.attr('method'),
+                url: frm.attr('action'),
+                data: frm.serialize()
+            }).done(function (preprocessData, textStatus) { // preprocessData -> resonseJSON : MINE type in response -> application/JSON
+                console.log(preprocessData);
+                $("#response-alert")
+                    .toggle()
+                    .removeClass("alert-danger")
+                    .removeClass("alert-info")
+                    .addClass("alert-success")
+                    .html("<b>Well done!</b> " + preprocessData["name"] + " is in process. Please wait.")
+                    .toggle("slow");
+                
+                $("#file-info").data("meta-data", {
+                    name: preprocessData["name"],
+                    size: preprocessData["size"]
+                });
+                //
+                $(".loading-progress").progressTimer({
+                    successText: "100% COMPLETE",
+                    timeLimit: 30,
+                    baseStyle: 'progress-bar-warning',
+                    warningStyle: 'progress-bar-info',
+                    onFinish: function () {
+                        $.ajax({
+                            type: "GET",
+                            url: preprocessData["url"]
+                        }).done(function(actualData, textStatus) {
+                            console.log(actualData);
+                            $("#txt-download-link").val(actualData["url"]);
+                            $("#file-size-no1").html($("#file-info").data("meta-data").size);
+                            $("#response-alert")
+                                .toggle()
+                                .html("<b>Congratulation!</b> Your " + $("#file-info").data("meta-data").name + " is ready to download.")
+                                .toggle("slow");
+                            $("#btn-copy-link").removeAttr("disabled");
+                            $("#btn-download-link").removeAttr("disabled").click(function() {
+                                window.location.href = actualData["url"];
+                            })
+                        });
+                    }
+                });
+            }).fail(function (xhr, textStatus) {
+                console.log(textStatus);
+                var responeJson = xhr.responseJSON;
+                $("#response-alert")
+                    .toggle()
+                    .removeClass("alert-success")
+                    .removeClass("alert-info")
+                    .addClass("alert-danger")
+                    .html("<b>Ops!</b> " + responeJson["msg"] + ".")
+                    .toggle("slow");
+
+                $(".loading-progress").progressTimer({
+                    timeLimit: 0,
+                    successText: "ERROR",
+                    completeStyle: 'progress-bar-danger'
+                });
+            }).always(function () {
+                grecaptcha.reset();
+            });
+        });
+    </script>
+</body>
+
 </html>
