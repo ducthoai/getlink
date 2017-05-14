@@ -52,6 +52,7 @@ public class Download extends HttpServlet {
     protected void processGetRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
+        response.setHeader("Access-Control-Allow-Origin", "*");
         try (PrintWriter out = response.getWriter()) {
             String userAgent = request.getHeader("User-Agent");
             if (userAgent == null || userAgent.isEmpty()) {
